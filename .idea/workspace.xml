@@ -4,17 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="implemented basic db logic">
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/scraper/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/scraper/tutti.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/db_simulated_test.py" afterDir="false" />
+    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="implemented basic scraper">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/database.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scraper/image_downloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/scraper/image_downloader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scraper/tutti.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/scraper/tutti.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/vision/classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/classifier.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/vision/detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/vision/gemini_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/gemini_classifier.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,6 +52,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.classifier.executor": "Run",
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
@@ -119,7 +118,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773229281207</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="implemented basic scraper">
+      <option name="closed" value="true" />
+      <created>1773231985860</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1773231985860</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -135,6 +142,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="implemented basic db logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="implemented basic db logic" />
+    <MESSAGE value="implemented basic scraper" />
+    <option name="LAST_COMMIT_MESSAGE" value="implemented basic scraper" />
   </component>
 </project>
