@@ -24,6 +24,7 @@ class Listing(Base):
     title: Mapped[str] = mapped_column(String)
     url: Mapped[str] = mapped_column(String)
     asking_price: Mapped[float] = mapped_column(Float)
+    image_url: Mapped[str] = mapped_column(String)      # Stores the URL of the listing's main picture
 
     total_estimated_value: Mapped[Optional[float]] = mapped_column(Float, default=None)
 
