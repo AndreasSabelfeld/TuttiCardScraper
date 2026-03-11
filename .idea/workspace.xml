@@ -4,14 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="implemented basic scraper">
+    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database.">
+      <change afterPath="$PROJECT_DIR$/src/notifications/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/notifications/reporter.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pricing/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pricing/calculator.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pricing/pricecharting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scraper/image_downloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/scraper/image_downloader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scraper/tutti.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/scraper/tutti.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/vision/classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/classifier.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/vision/detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/db/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/vision/gemini_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/gemini_classifier.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -126,7 +128,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773231985860</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database.">
+      <option name="closed" value="true" />
+      <created>1773253681441</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1773253681441</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -143,6 +153,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="implemented basic db logic" />
     <MESSAGE value="implemented basic scraper" />
-    <option name="LAST_COMMIT_MESSAGE" value="implemented basic scraper" />
+    <MESSAGE value="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database." />
+    <option name="LAST_COMMIT_MESSAGE" value="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database." />
   </component>
 </project>

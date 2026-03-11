@@ -55,6 +55,9 @@ class Card(Base):
 
     cropped_image_path: Mapped[Optional[str]] = mapped_column(String)
 
+    pricecharting_url = mapped_column(String, nullable=True)
+    pricecharting_image_url = mapped_column(String, nullable=True)
+
     listing: Mapped["Listing"] = relationship(back_populates="cards")
 
     def __repr__(self) -> str:

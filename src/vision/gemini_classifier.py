@@ -105,6 +105,15 @@ async def _process_single_card_api(card_id: int, image_path: str):
 
         if response.text:
             result_data = json.loads(response.text)
+
+            # If Gemini wrapped our dictionary in a list, extract the first item
+            if isinstance(result_data, list):
+                if len(result_data) > 0 and isinstance(result_data[0], dict):
+                    result_data = result_data[0]
+                else:
+                    # If it gave us a list of weird junk, default to empty dict
+                    result_data = {}
+
             name = result_data.get('card_name', 'Unknown')
             num = result_data.get('set_number', 'Unknown')
             return card_id, name, num, None
