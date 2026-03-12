@@ -12,24 +12,29 @@ API_KEY = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=API_KEY)
 MODEL_ID = "gemini-3.1-flash-lite-preview"
 
-# --- CONFIGURATION ---
-SECONDS_BETWEEN_CARDS = 5  # For sequential mode
-BATCH_SIZE = 12  # For parallel mode (Stay safely under 15 RPM)
-BATCH_DELAY = 65  # For parallel mode (Wait slightly over a minute to reset quota)
+BATCH_SIZE = 100  # For parallel mode
 
 PROMPT = """
-Identify the Pokemon card name and set number (e.g. 004/165). 
-If not a card, return "Unknown".
+You are an expert Pokemon TCG appraiser. Look at this cropped image of a Pokemon card.
+Your goal is to extract the exact Card Name and the Set Number.
+
+CRITICAL INSTRUCTIONS:
+1. Look closely at the BOTTOM LEFT or BOTTOM RIGHT corner for the Set Number (e.g., "004/165", "TG13/TG30", "112/105", or "SWSH250"). 
+2. The card might be in English, German, or Japanese. Output the name exactly as printed on the card.
+3. Ignore HP numbers, attack damage numbers, or illustrator names.
+4. If the image is just a piece of artwork, a table texture, or clearly NOT a full Pokemon card, return "Unknown" for both fields.
+5. If the card is too blurry or covered by glare to read the number, return "Unknown" for both fields.
+
 Respond STRICTLY in JSON format: {"card_name": "...", "set_number": "..."}
 """
 
 
 async def analyze_card_sequential() -> None:
     """
-    sequential analyzing
+    Sequential analyzing (UNCAPPED SPEED - Paid Tier)
     :return: None
     """
-    print(f"Bot: Starting Gemini Vision (Sequential Mode)...")
+    print(f"Bot: Starting Gemini Vision (Uncapped Sequential Mode)...")
     db = SessionLocal()
 
     try:
@@ -41,10 +46,15 @@ async def analyze_card_sequential() -> None:
             print("Bot: No cards to identify.")
             return
 
-        print(f"Bot: Found {len(cards_to_identify)} cards. Processing one-by-one...\n")
+        print(f"Bot: Found {len(cards_to_identify)} cards. Processing at maximum speed...\n")
+
+        processed_count = 0
 
         for i, card in enumerate(cards_to_identify):
-            print(f"[{i + 1}/{len(cards_to_identify)}] Analyzing Card ID {card.id}...")
+            if not os.path.exists(card.cropped_image_path):
+                print(f"  -> [Card {card.id}] Image missing at {card.cropped_image_path}. Skipping.")
+                card.detected_name = "Error"
+                continue
 
             try:
                 with open(card.cropped_image_path, "rb") as f:
@@ -60,30 +70,37 @@ async def analyze_card_sequential() -> None:
 
                 if response.text:
                     result_data = json.loads(response.text)
+                    # If Gemini wrapped our dictionary in a list, extract the first item
+                    if isinstance(result_data, list):
+                        if len(result_data) > 0 and isinstance(result_data[0], dict):
+                            result_data = result_data[0]
+                        else:
+                            # If it gave us a list of weird junk, default to empty dict
+                            result_data = {}
+
                     name = result_data.get('card_name', 'Unknown')
                     num = result_data.get('set_number', 'Unknown')
 
                     card.detected_name = name
                     card.set_info = num
-                    print(f"  -> Identified: {name} ({num})")
+                    print(f"  -> [{i + 1}/{len(cards_to_identify)}] Identified: {name} ({num})")
+                    processed_count += 1
                 else:
-                    print("  -> AI returned empty text (possibly safety filter).")
+                    print(f"  -> [{i + 1}/{len(cards_to_identify)}] AI returned empty text (possibly safety filter).")
                     card.detected_name = "Safety Blocked"
 
                 db.commit()
 
             except Exception as e:
                 if "429" in str(e):
-                    print("  !! Rate limit hit. Sleeping for 65s...")
-                    await asyncio.sleep(65)
+                    print(f"  !! Rate limit hit (4000 RPM reached). Backing off for 5s...")
+                    await asyncio.sleep(5)
                 else:
-                    print(f"  -> Error: {str(e)[:100]}")
+                    print(f"  -> Error on Card {card.id}: {str(e)[:100]}")
                     card.detected_name = "Error"
                     db.commit()
 
-            await asyncio.sleep(SECONDS_BETWEEN_CARDS)
-
-        print("\nBot: All work complete.")
+        print(f"\nBot: Successfully classified {processed_count} cards at maximum speed!")
 
     finally:
         db.close()
@@ -157,12 +174,12 @@ async def analyze_card_parallel() -> None:
             results = await asyncio.gather(*tasks)
 
             # Process results and update DB
-            rate_limit_hit = False
             for card_id, name, num, error in results:
                 if error:
                     print(f"  -> Card #{card_id} Error: {error[:80]}...")
                     if "429" in error:
-                        rate_limit_hit = True
+                        print(f"  !! Rate limit hit (4000 RPM reached). Backing off for 5s...")
+                        await asyncio.sleep(5)
                 else:
                     print(f"  -> Card #{card_id} Identified: {name} ({num})")
 
@@ -175,12 +192,6 @@ async def analyze_card_parallel() -> None:
 
             # Commit the whole batch to the database at once
             db.commit()
-
-            # If there are more cards left to process, we must wait for the RPM quota to reset
-            if i + BATCH_SIZE < total_cards:
-                delay = BATCH_DELAY + 30 if rate_limit_hit else BATCH_DELAY
-                print(f"Bot: Batch complete. Sleeping for {delay} seconds to reset API quota...\n")
-                await asyncio.sleep(delay)
 
         print("\nBot: All parallel work complete.")
 

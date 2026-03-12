@@ -4,16 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database.">
-      <change afterPath="$PROJECT_DIR$/src/notifications/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/notifications/reporter.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pricing/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pricing/calculator.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pricing/pricecharting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="Implemented a notifier for potential profits and a calculator for said profits">
+      <change afterPath="$PROJECT_DIR$/tests/test_local_roboflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/TuttiCardScraper.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TuttiCardScraper.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/notifications/reporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/notifications/reporter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pricing/pricecharting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pricing/pricecharting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scraper/tutti.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/scraper/tutti.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/vision/detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/detector.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/vision/gemini_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/gemini_classifier.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -31,37 +32,38 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "AndreasSabelfeld"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;AndreasSabelfeld&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/AndreasSabelfeld/TuttiCardScraper.git",
-    "accountId": "742347a1-4e9b-4321-aa46-e195657dcc0c"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/AndreasSabelfeld/TuttiCardScraper.git&quot;,
+    &quot;accountId&quot;: &quot;742347a1-4e9b-4321-aa46-e195657dcc0c&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="3AnTU4wygELVeQ7PSeiXkHI5OyF" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.classifier.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.classifier.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -136,7 +138,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773253681441</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Implemented a notifier for potential profits and a calculator for said profits">
+      <option name="closed" value="true" />
+      <created>1773269857485</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1773269857485</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -154,6 +164,7 @@
     <MESSAGE value="implemented basic db logic" />
     <MESSAGE value="implemented basic scraper" />
     <MESSAGE value="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database." />
-    <option name="LAST_COMMIT_MESSAGE" value="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database." />
+    <MESSAGE value="Implemented a notifier for potential profits and a calculator for said profits" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented a notifier for potential profits and a calculator for said profits" />
   </component>
 </project>

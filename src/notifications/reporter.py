@@ -1,9 +1,11 @@
 import os
 import smtplib
+import io
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from dotenv import load_dotenv
+from PIL import Image
 from src.db.database import SessionLocal
 from src.db.models import Listing, Card
 
@@ -40,31 +42,35 @@ def generate_and_send_report():
 
         print(f"Bot: Found {len(profitable_listings)} profitable listings. Formatting email...")
 
-        # Create the root message (related allows for inline images)
         msg = MIMEMultipart('related')
         msg['Subject'] = f"🚨 Pokemon Arbitrage Alert: {len(profitable_listings)} Profitable Listings Found!"
         msg['From'] = sender_email
         msg['To'] = receiver_email
 
-        # Create the HTML body
         html_content = """
         <html>
           <head>
             <style>
               body { font-family: Arial, sans-serif; }
-              .listing-box { border: 2px solid #333; margin-bottom: 30px; padding: 15px; border-radius: 8px; }
+              .listing-box { border: 2px solid #333; margin-bottom: 30px; padding: 15px; border-radius: 8px; background-color: #fafafa; }
               .profit { color: green; font-size: 1.2em; font-weight: bold; }
-              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: white; }
               th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
               th { background-color: #f2f2f2; }
               .card-img { max-width: 150px; max-height: 200px; border-radius: 5px; }
+              details { margin-top: 15px; }
+              summary {
+                background-color: #007bff; color: white; padding: 12px; border-radius: 5px;
+                cursor: pointer; font-weight: bold; list-style: none;
+              }
+              summary::-webkit-details-marker { display: none; }
+              summary:hover { background-color: #0056b3; }
             </style>
           </head>
           <body>
             <h2>Your Daily Pokemon TCG Arbitrage Report</h2>
         """
 
-        # We need to keep track of images we embed to avoid duplicates
         embedded_images = []
 
         for listing, asking_price, profit in profitable_listings:
@@ -88,21 +94,17 @@ def generate_and_send_report():
                     </tr>
             """
 
-            # Loop through the cards in this listing
             for card in listing.cards:
                 if not card.estimated_price or card.estimated_price == 0:
-                    continue  # Skip junk cards in the email
+                    continue
 
-                # Setup the CID for the local image
                 cid = f"image_{card.id}"
 
-                # Check if local image actually exists
                 local_img_html = "<i>Image Missing</i>"
                 if os.path.exists(card.cropped_image_path):
                     local_img_html = f'<img src="cid:{cid}" class="card-img" alt="Cropped Card">'
                     embedded_images.append((cid, card.cropped_image_path))
 
-                # Setup the PriceCharting image
                 pc_img_html = "<i>No Ref Image</i>"
                 if card.pricecharting_image_url:
                     pc_img_html = f'<img src="{card.pricecharting_image_url}" class="card-img" alt="Reference Card">'
@@ -110,16 +112,16 @@ def generate_and_send_report():
                 pc_link = card.pricecharting_url if card.pricecharting_url else "#"
 
                 html_content += f"""
-                    <tr>
-                        <td>{local_img_html}</td>
-                        <td>{pc_img_html}</td>
-                        <td style="text-align: left;">
-                            <strong>{card.detected_name}</strong><br>
-                            Set: {card.set_info}<br>
-                            Value: <strong>CHF {card.estimated_price:.2f}</strong><br>
-                            <a href="{pc_link}" target="_blank">View on PriceCharting</a>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>{local_img_html}</td>
+                            <td>{pc_img_html}</td>
+                            <td style="text-align: left;">
+                                <strong>{card.detected_name}</strong><br>
+                                Set: {card.set_info}<br>
+                                Value: <strong>CHF {card.estimated_price:.2f}</strong><br>
+                                <a href="{pc_link}" target="_blank">View on PriceCharting</a>
+                            </td>
+                        </tr>
                 """
 
             html_content += """
@@ -132,26 +134,39 @@ def generate_and_send_report():
         </html>
         """
 
-        # Attach the HTML to the email
         msg.attach(MIMEText(html_content, 'html'))
 
-        # Attach all the local images using their CIDs
         for cid, img_path in embedded_images:
             try:
-                with open(img_path, 'rb') as f:
-                    img_data = f.read()
-                image = MIMEImage(img_data, name=os.path.basename(img_path))
-                # Add the Content-ID header so the HTML can find it
+                # Open the image using Pillow
+                with Image.open(img_path) as img:
+                    # Convert PNGs (RGBA) to standard JPEGs (RGB) if necessary
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+
+                    # .thumbnail resizes the image while maintaining the aspect ratio
+                    # 150x200 is exactly what our CSS asks for
+                    img.thumbnail((150, 200))
+
+                    # Save the new image to an in-memory buffer instead of the hard drive
+                    img_byte_arr = io.BytesIO()
+                    img.save(img_byte_arr, format='JPEG', quality=65)  # 65% quality is plenty for emails
+
+                    # Extract the raw bytes
+                    img_data = img_byte_arr.getvalue()
+
+                # Attach the compressed bytes instead of the original file
+                image = MIMEImage(img_data, name=f"{cid}.jpg")
                 image.add_header('Content-ID', f'<{cid}>')
                 image.add_header('Content-Disposition', 'inline')
                 msg.attach(image)
-            except Exception as e:
-                print(f"  -> Could not attach image {img_path}: {e}")
 
-        # Connect to the SMTP server and send the email
+            except Exception as e:
+                print(f"  -> Could not compress and attach image {img_path}: {e}")
+
         print("Bot: Connecting to email server...")
         with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()  # Secure the connection
+            server.starttls()
             server.login(sender_email, sender_password)
             server.send_message(msg)
 

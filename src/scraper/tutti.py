@@ -129,7 +129,7 @@ async def run_hybrid_scraper(max_listings: int = None) -> None:
         print(f"Bot: Total unique listings verified in this run: {len(scraped_ids)}")
 
         if max_listings is None:        # Only perform deletion if we scraped the ENTIRE website (max_listings is None)
-            deletion(db, scraped_ids)
+            __deletion(db, scraped_ids)
         else:
             print("\nBot: Skipping Database Cleanup (Partial scrape mode active).")
 
@@ -173,9 +173,3 @@ def __deletion(db, scraped_ids: set) -> None:
         print(f"Bot: Successfully removed {deleted_count} deleted listings from the database and disk.")
     else:
         print("Bot: Database is up to date. No listings or images were deleted.")
-
-
-if __name__ == "__main__":
-    # Change this to a number (e.g., 60) to test partial scraping,
-    # or leave it as None to scrape all pages and trigger the cleanup logic
-    asyncio.run(run_hybrid_scraper(max_listings=None))

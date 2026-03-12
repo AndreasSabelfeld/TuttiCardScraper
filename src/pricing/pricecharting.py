@@ -3,6 +3,7 @@ import urllib.parse
 import urllib.request
 import json
 import re
+import random
 from playwright.async_api import async_playwright
 from src.db.database import SessionLocal
 from src.db.models import Card
@@ -54,7 +55,13 @@ def format_search_query(name: str, set_info: str) -> str:
 
 async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: asyncio.Semaphore,
                            exchange_rate: float):
-    """Worker function that searches a card and converts the price to CHF."""
+    """Worker function that searches a card with randomized human jitter to evade firewalls."""
+
+    # 1. THE STARTUP STAGGER
+    # Before we even acquire the semaphore, sleep for a random fraction of a second.
+    # This prevents the initial batch of tasks from hitting the site at the exact same millisecond.
+    await asyncio.sleep(random.uniform(0.1, 2.5))
+
     async with semaphore:
         page = await browser.new_page()
 
@@ -64,7 +71,10 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
 
             await page.goto(search_url)
             await page.wait_for_load_state("domcontentloaded")
-            await asyncio.sleep(1)
+
+            # 2. THE HUMAN JITTER
+            # Humans don't wait exactly 1.000 seconds. They wait randomly.
+            await asyncio.sleep(random.uniform(1.2, 3.5))
 
             # SCENARIO: We landed on a search results table
             if await page.locator("#games_table").first.is_visible():
@@ -76,9 +86,15 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
                         # Handle relative URLs
                         if href.startswith("/"):
                             href = "https://www.pricecharting.com" + href
+
+                        # Add a tiny micro-jitter before clicking the link
+                        await asyncio.sleep(random.uniform(0.3, 1.1))
+
                         await page.goto(href)
                         await page.wait_for_load_state("domcontentloaded")
-                        await asyncio.sleep(1)
+
+                        # Another human jitter after the new page loads
+                        await asyncio.sleep(random.uniform(1.5, 3.2))
 
             # Now we should be on the actual product page
             price_val_usd = 0.0
@@ -93,7 +109,7 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
                 # 2. Get the Official URL
                 pc_url = page.url
 
-                # 3. Get the Image URL (PriceCharting usually uses a .cover img or .photo img class)
+                # 3. Get the Image URL
                 img_locator = page.locator(".photo img, .cover img, #cover img").first
                 if await img_locator.is_visible():
                     img_url = await img_locator.get_attribute("src")
@@ -117,7 +133,9 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
 
         finally:
             await page.close()
-            await asyncio.sleep(1)
+            # 3. THE COOL-DOWN JITTER
+            # Wait a moment before returning the semaphore so the next tab doesn't open instantly
+            await asyncio.sleep(random.uniform(0.5, 1.5))
 
 
 async def run_parallel_pricer():
@@ -130,7 +148,7 @@ async def run_parallel_pricer():
             Card.detected_name != "Unknown",
             Card.detected_name != "Error",
             Card.detected_name != "Safety Blocked",
-            (Card.estimated_price == None)
+            Card.estimated_price == None
         ).all()
 
         if not cards_to_price:
