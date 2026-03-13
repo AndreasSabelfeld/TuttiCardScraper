@@ -4,12 +4,13 @@ import urllib.request
 import json
 import re
 import random
+import requests
 from playwright.async_api import async_playwright
 from src.db.database import SessionLocal
 from src.db.models import Card
 
 
-CONCURRENCY_LIMIT = 1  # 5 simultaneous Chrome tabs is a safe sweet spot
+CONCURRENCY_LIMIT = 1
 
 
 def get_live_exchange_rate() -> float:
@@ -17,12 +18,11 @@ def get_live_exchange_rate() -> float:
     print("Bot: Fetching live USD -> CHF exchange rate...")
     try:
         url = "https://open.er-api.com/v6/latest/USD"
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode())
-            rate = data["rates"]["CHF"]
-            print(f"Bot: Current exchange rate is 1 USD = {rate} CHF")
-            return rate
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        rate = data["rates"]["CHF"]
+        print(f"Bot: Current exchange rate is 1 USD = {rate} CHF")
+        return rate
     except Exception as e:
         # If the internet drops or the API is down, use a sensible fallback (approx. March 2026 rate)
         fallback_rate = 0.78
@@ -57,7 +57,6 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
                            exchange_rate: float):
     """Worker function that searches a card with randomized human jitter to evade firewalls."""
 
-    # 1. THE STARTUP STAGGER
     # Before we even acquire the semaphore, sleep for a random fraction of a second.
     # This prevents the initial batch of tasks from hitting the site at the exact same millisecond.
     await asyncio.sleep(random.uniform(0.1, 2.5))
@@ -72,11 +71,14 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
             await page.goto(search_url)
             await page.wait_for_load_state("domcontentloaded")
 
-            # 2. THE HUMAN JITTER
-            # Humans don't wait exactly 1.000 seconds. They wait randomly.
+            title = await page.title()
+            if "Just a moment" in title or "Cloudflare" in title or "Attention Required" in title:
+                print(f"  -> [Card {card_id}] Cloudflare wall hit on search! Skipping to protect IP...")
+                return card_id, 0.0, None, None
+
             await asyncio.sleep(random.uniform(1.2, 3.5))
 
-            # SCENARIO: We landed on a search results table
+            # We landed on a search results table
             if await page.locator("#games_table").first.is_visible():
                 first_row = page.locator("#games_table tbody tr").first
                 if await first_row.is_visible():
@@ -87,13 +89,11 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
                         if href.startswith("/"):
                             href = "https://www.pricecharting.com" + href
 
-                        # Add a tiny micro-jitter before clicking the link
                         await asyncio.sleep(random.uniform(0.3, 1.1))
 
                         await page.goto(href)
                         await page.wait_for_load_state("domcontentloaded")
 
-                        # Another human jitter after the new page loads
                         await asyncio.sleep(random.uniform(1.5, 3.2))
 
             # Now we should be on the actual product page
@@ -102,18 +102,17 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
             img_url = None
 
             if await page.locator("#used_price").first.is_visible():
-                # 1. Get Price
+                # Get Price
                 price_text = await page.locator("#used_price .js-price").first.inner_text()
                 price_val_usd = parse_usd_price(price_text)
 
-                # 2. Get the Official URL
+                # Get the Official URL
                 pc_url = page.url
 
-                # 3. Get the Image URL
+                # Get the Image URL
                 img_locator = page.locator(".photo img, .cover img, #cover img").first
                 if await img_locator.is_visible():
                     img_url = await img_locator.get_attribute("src")
-                    # Handle protocol-relative URLs (e.g. "//i.ebayimg.com/...")
                     if img_url and img_url.startswith("//"):
                         img_url = "https:" + img_url
 
@@ -133,7 +132,6 @@ async def fetch_card_price(browser, card_id: int, search_query: str, semaphore: 
 
         finally:
             await page.close()
-            # 3. THE COOL-DOWN JITTER
             # Wait a moment before returning the semaphore so the next tab doesn't open instantly
             await asyncio.sleep(random.uniform(0.5, 1.5))
 
@@ -157,7 +155,7 @@ async def run_parallel_pricer():
 
         print(f"Bot: Found {len(cards_to_price)} cards to price.\n")
 
-        # 1. Fetch the exchange rate ONCE before starting the parallel workers
+        # Fetch the exchange rate ONCE before starting the parallel workers
         usd_to_chf_rate = get_live_exchange_rate()
         print("Bot: Launching browser...")
 
@@ -169,14 +167,12 @@ async def run_parallel_pricer():
 
             for card in cards_to_price:
                 query = format_search_query(card.detected_name, card.set_info)
-                # 2. Pass the exchange rate to every worker
                 tasks.append(fetch_card_price(browser, card.id, query, semaphore, usd_to_chf_rate))
 
             print(f"Bot: Dispatching {len(tasks)} searches to PriceCharting...")
 
             priced_count = 0
             for coro in asyncio.as_completed(tasks):
-                # Unpack the 4 returned variables
                 card_id, price_val_chf, pc_url, img_url = await coro
 
                 db_card = db.query(Card).filter(Card.id == card_id).first()

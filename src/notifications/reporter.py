@@ -27,7 +27,11 @@ def generate_and_send_report():
     db = SessionLocal()
 
     try:
-        listings = db.query(Listing).filter(Listing.total_estimated_value > 0).all()
+        # Only grab listings that are ready for reporting (ignore already reported ones)
+        listings = db.query(Listing).filter(
+            Listing.status != "REPORTED",
+            Listing.total_estimated_value > 0
+        ).all()
 
         profitable_listings = []
         for listing in listings:
@@ -37,8 +41,12 @@ def generate_and_send_report():
                 profitable_listings.append((listing, listing.asking_price, profit))
 
         if not profitable_listings:
-            print("Bot: No profitable listings found today. Skipping email.")
+            print("Bot: No new profitable listings found today. Skipping email.")
             return
+
+        # SORTING: Highest profit at the top of the email!
+        # x[2] refers to the 'profit' variable in the tuple we just appended above
+        profitable_listings.sort(key=lambda x: x[2], reverse=True)
 
         print(f"Bot: Found {len(profitable_listings)} profitable listings. Formatting email...")
 
@@ -136,26 +144,17 @@ def generate_and_send_report():
 
         msg.attach(MIMEText(html_content, 'html'))
 
+        # Embed all the images using Pillow
         for cid, img_path in embedded_images:
             try:
-                # Open the image using Pillow
                 with Image.open(img_path) as img:
-                    # Convert PNGs (RGBA) to standard JPEGs (RGB) if necessary
                     if img.mode != 'RGB':
                         img = img.convert('RGB')
-
-                    # .thumbnail resizes the image while maintaining the aspect ratio
-                    # 150x200 is exactly what our CSS asks for
                     img.thumbnail((150, 200))
-
-                    # Save the new image to an in-memory buffer instead of the hard drive
                     img_byte_arr = io.BytesIO()
-                    img.save(img_byte_arr, format='JPEG', quality=65)  # 65% quality is plenty for emails
-
-                    # Extract the raw bytes
+                    img.save(img_byte_arr, format='JPEG', quality=65)
                     img_data = img_byte_arr.getvalue()
 
-                # Attach the compressed bytes instead of the original file
                 image = MIMEImage(img_data, name=f"{cid}.jpg")
                 image.add_header('Content-ID', f'<{cid}>')
                 image.add_header('Content-Disposition', 'inline')
@@ -164,15 +163,23 @@ def generate_and_send_report():
             except Exception as e:
                 print(f"  -> Could not compress and attach image {img_path}: {e}")
 
-        print("Bot: Connecting to email server...")
+        print("Bot: Connecting to email server and sending...")
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(sender_email, sender_password)
             server.send_message(msg)
 
-        print("Bot: Success! Arbitrage report sent to your inbox.")
+        print("Bot: Report sent successfully to your inbox.")
+
+        print("Bot: Updating database statuses to prevent duplicate emails...")
+        for listing, _, _ in profitable_listings:
+            listing.status = "REPORTED"
+
+        db.commit()
+        print("Bot: ✅ Database fully synced. Pipeline complete!")
 
     except Exception as e:
         print(f"Fatal error in email reporter: {e}")
+        db.rollback()
     finally:
         db.close()
