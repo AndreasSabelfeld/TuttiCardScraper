@@ -30,14 +30,14 @@ def main():
         run_vision_pipeline()  # OpenCV & Local Roboflow OBB
 
         # Using the Uncapped Paid Tier Sequential Analyzer!
-        asyncio.run(analyze_card_parallel())
-
-        print("\n>>> PHASE 3: PRICECHARTING MARKET ANALYSIS <<<")
         tier = os.environ.get("GEMINI_TIER", "FREE").upper()
         if tier == "PAID":
-            asyncio.run(run_parallel_pricer())
+            asyncio.run(analyze_card_parallel())
         else:
             asyncio.run(analyze_card_free_tier())
+
+        print("\n>>> PHASE 3: PRICECHARTING MARKET ANALYSIS <<<")
+        asyncio.run(run_parallel_pricer())
         calculate_arbitrage()  # DB Status Updates
 
         print("\n>>> PHASE 4: REPORTING & DATABASE CLEANUP <<<")

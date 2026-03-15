@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="Changed the readme.md">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="updated requirements">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/vision/gemini_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/vision/gemini_classifier.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -163,7 +161,23 @@
       <option name="project" value="LOCAL" />
       <updated>1773568437177</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added free tier option for Gemini API">
+      <option name="closed" value="true" />
+      <created>1773605973381</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1773605973381</updated>
+    </task>
+    <task id="LOCAL-00009" summary="updated requirements">
+      <option name="closed" value="true" />
+      <created>1773609554428</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1773609554428</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -185,6 +199,8 @@
     <MESSAGE value="Improved the precision of the model by changing it to &quot;sleeved-obb/7&quot;. Also made other minor improvements." />
     <MESSAGE value="Improved the reporting system, such that already reported listing aren't reported again. Now we also detect if we are getting stopped by Cloudflare in the pricing step." />
     <MESSAGE value="Changed the readme.md" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed the readme.md" />
+    <MESSAGE value="Added free tier option for Gemini API" />
+    <MESSAGE value="updated requirements" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated requirements" />
   </component>
 </project>
