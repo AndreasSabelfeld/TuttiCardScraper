@@ -1,10 +1,13 @@
+import os
 import time
 import asyncio
+
+from dotenv import load_dotenv
 
 from src.scraper.tutti import run_hybrid_scraper
 from src.scraper.image_downloader import run_downloader
 from src.vision.detector import run_vision_pipeline
-from src.vision.gemini_classifier import analyze_card_sequential, analyze_card_parallel
+from src.vision.gemini_classifier import analyze_card_sequential, analyze_card_parallel, analyze_card_free_tier
 from src.pricing.pricecharting import run_parallel_pricer
 from src.pricing.calculator import calculate_arbitrage
 from src.notifications.reporter import generate_and_send_report
@@ -16,6 +19,7 @@ def main():
     print("===================================================")
 
     start_time = time.time()
+    load_dotenv()
 
     try:
         print("\n>>> PHASE 1: SCRAPING & DOWNLOADING <<<")
@@ -29,7 +33,11 @@ def main():
         asyncio.run(analyze_card_parallel())
 
         print("\n>>> PHASE 3: PRICECHARTING MARKET ANALYSIS <<<")
-        asyncio.run(run_parallel_pricer())  # Stealth Playwright Engine
+        tier = os.environ.get("GEMINI_TIER", "FREE").upper()
+        if tier == "PAID":
+            asyncio.run(run_parallel_pricer())
+        else:
+            asyncio.run(analyze_card_free_tier())
         calculate_arbitrage()  # DB Status Updates
 
         print("\n>>> PHASE 4: REPORTING & DATABASE CLEANUP <<<")

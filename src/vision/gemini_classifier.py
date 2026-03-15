@@ -20,7 +20,7 @@ Your goal is to extract the exact Card Name and the Set Number.
 
 CRITICAL INSTRUCTIONS:
 1. Look closely at the BOTTOM LEFT or BOTTOM RIGHT corner for the Set Number (e.g., "004/165", "TG13/TG30", "112/105", or "SWSH250"). 
-2. The card might be in English, German, or Japanese. Output the name exactly as printed on the card.
+2. The card might be in English, German, or Japanese. Output the name in English.
 3. Ignore HP numbers, attack damage numbers, or illustrator names.
 4. If the image is just a piece of artwork, a table texture, or clearly NOT a full Pokemon card, return "Unknown" for both fields.
 5. If the card is too blurry or covered by glare to read the number, return "Unknown" for both fields.
@@ -197,3 +197,82 @@ async def analyze_card_parallel() -> None:
 
     finally:
         db.close()
+
+
+async def analyze_card_free_tier() -> None:
+    """
+    Sequential analyzing with strict delays for the Free API Tier (max 15 RPM).
+    :return: None
+    """
+    print(f"Bot: Starting Gemini Vision (Free Tier Mode - 15 RPM Limit)...")
+    db = SessionLocal()
+
+    try:
+        cards_to_identify = db.query(Card).filter(
+            (Card.detected_name == None) | (Card.detected_name == "Error")
+        ).all()
+
+        if not cards_to_identify:
+            print("Bot: No cards to identify.")
+            return
+
+        print(f"Bot: Found {len(cards_to_identify)} cards. Processing at ~4 seconds per card to avoid bans...\n")
+
+        processed_count = 0
+
+        for i, card in enumerate(cards_to_identify):
+            if not os.path.exists(card.cropped_image_path):
+                print(f"  -> [Card {card.id}] Image missing at {card.cropped_image_path}. Skipping.")
+                card.detected_name = "Error"
+                db.commit()
+                continue
+
+            try:
+                with open(card.cropped_image_path, "rb") as f:
+                    image_data = f.read()
+
+                image_part = types.Part.from_bytes(data=image_data, mime_type="image/jpeg")
+
+                response = await client.aio.models.generate_content(
+                    model=MODEL_ID,
+                    contents=[PROMPT, image_part],
+                    config=types.GenerateContentConfig(response_mime_type="application/json")
+                )
+
+                if response.text:
+                    result_data = json.loads(response.text)
+
+                    # If Gemini wrapped our dictionary in a list, extract the first item
+                    if isinstance(result_data, list):
+                        if len(result_data) > 0 and isinstance(result_data[0], dict):
+                            result_data = result_data[0]
+                        else:
+                            result_data = {}
+
+                    name = result_data.get('card_name', 'Unknown')
+                    num = result_data.get('set_number', 'Unknown')
+
+                    card.detected_name = name
+                    card.set_info = num
+                    print(f"  -> [{i + 1}/{len(cards_to_identify)}] Identified: {name} ({num})")
+                    processed_count += 1
+                else:
+                    print(f"  -> [{i + 1}/{len(cards_to_identify)}] AI returned empty text (possibly safety filter).")
+                    card.detected_name = "Safety Blocked"
+
+                db.commit()
+
+            except Exception as e:
+                print(f"  -> Error on Card {card.id}: {str(e)[:100]}")
+                card.detected_name = "Error"
+                db.commit()
+
+            # 60 seconds / 15 requests = 4 seconds. We use 4.2 just to be completely safe from micro-timing bans.
+            if i < len(cards_to_identify) - 1:
+                await asyncio.sleep(4.2)
+
+        print(f"\nBot: Successfully classified {processed_count} cards safely on the Free Tier!")
+
+    finally:
+        db.close()
+
