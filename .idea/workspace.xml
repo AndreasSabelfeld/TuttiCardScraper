@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="Improved the precision of the model by changing it to &quot;sleeved-obb/7&quot;. Also made other minor improvements.">
+    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="Improved the reporting system, such that already reported listing aren't reported again. Now we also detect if we are getting stopped by Cloudflare in the pricing step.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/notifications/reporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/notifications/reporter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pricing/pricecharting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pricing/pricecharting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -148,7 +145,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773344969508</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Improved the reporting system, such that already reported listing aren't reported again. Now we also detect if we are getting stopped by Cloudflare in the pricing step.">
+      <option name="closed" value="true" />
+      <created>1773437438946</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1773437438946</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -168,6 +173,7 @@
     <MESSAGE value="added a classifier via gemini 3.1 flash lite. We successfully detect the cards in our pictures and add them to our database." />
     <MESSAGE value="Implemented a notifier for potential profits and a calculator for said profits" />
     <MESSAGE value="Improved the precision of the model by changing it to &quot;sleeved-obb/7&quot;. Also made other minor improvements." />
-    <option name="LAST_COMMIT_MESSAGE" value="Improved the precision of the model by changing it to &quot;sleeved-obb/7&quot;. Also made other minor improvements." />
+    <MESSAGE value="Improved the reporting system, such that already reported listing aren't reported again. Now we also detect if we are getting stopped by Cloudflare in the pricing step." />
+    <option name="LAST_COMMIT_MESSAGE" value="Improved the reporting system, such that already reported listing aren't reported again. Now we also detect if we are getting stopped by Cloudflare in the pricing step." />
   </component>
 </project>
