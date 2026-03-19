@@ -276,3 +276,114 @@ async def analyze_card_free_tier() -> None:
     finally:
         db.close()
 
+
+async def analyze_card_free_tier_generator():
+    """
+    Generates identified cards one by one for the pricing engine to consume immediately.
+    Includes API Key rotation for the Free Tier.
+    """
+    print(f"Bot: Starting Gemini Vision for Cards (Producer Mode - Key Rotation Enabled)...")
+    db = SessionLocal()
+
+    available_keys = [
+        os.environ.get("GEMINI_API_KEY")
+    ]
+    available_keys = [k for k in available_keys if k]
+
+    current_key_idx = 0
+    active_client = genai.Client(api_key=available_keys[current_key_idx]) if available_keys else None
+    consecutive_429_count = 0
+
+    try:
+        cards_to_identify = db.query(Card).filter(
+            (Card.detected_name == None) | (Card.detected_name == "Error")
+        ).all()
+
+        if not cards_to_identify:
+            print("Bot: No cards need identification.")
+            return
+
+        print(f"Bot: Found {len(cards_to_identify)} cards. Loaded {len(available_keys)} API keys.\n")
+
+        for i, card in enumerate(cards_to_identify):
+            if not os.path.exists(card.cropped_image_path):
+                card.detected_name = "Error"
+                db.commit()
+                continue
+
+            try:
+                with open(card.cropped_image_path, "rb") as f:
+                    image_data = f.read()
+
+                image_part = types.Part.from_bytes(data=image_data, mime_type="image/jpeg")
+
+                try:
+                    response = await asyncio.wait_for(
+                        active_client.aio.models.generate_content(
+                            model=MODEL_ID,
+                            contents=[PROMPT, image_part],
+                            config=types.GenerateContentConfig(response_mime_type="application/json")
+                        ), timeout=30.0
+                    )
+                except asyncio.TimeoutError:
+                    print(f"  -> Timeout Error on Card {card.id}: Gemini took longer than 30s.")
+                    card.detected_name = "Error"
+                    db.commit()
+                    consecutive_429_count = 0
+                    continue
+
+                if response.text:
+                    result_data = json.loads(response.text)
+                    if isinstance(result_data, list) and len(result_data) > 0:
+                        result_data = result_data[0]
+
+                    name = result_data.get('card_name', 'Unknown')
+                    num = result_data.get('set_number', 'Unknown')
+
+                    card.detected_name = name
+                    card.set_info = num
+                    db.commit()
+
+                    print(f"  -> [Vision] Identified: {name} ({num})")
+                    consecutive_429_count = 0
+
+                    if name != "Unknown":
+                        yield {
+                            "card_id": card.id,
+                            "name": name,
+                            "set_info": num
+                        }
+
+                else:
+                    card.detected_name = "Safety Blocked"
+                    consecutive_429_count = 0
+                    db.commit()
+
+            except Exception as e:
+                error_msg = str(e)
+                if "429" in error_msg:
+                    consecutive_429_count += 1
+                    print(f"  !! Rate limit hit (429). Strike {consecutive_429_count}/3.")
+
+                    if consecutive_429_count >= 3:
+                        if len(available_keys) > 1:
+                            current_key_idx = (current_key_idx + 1) % len(available_keys)
+                            print(f"  3 Strikes! Switching to API Key #{current_key_idx + 1}...")
+                            active_client = genai.Client(api_key=available_keys[current_key_idx])
+                            consecutive_429_count = 0
+                        else:
+                            print("  No backup keys available! Taking a 60s nap...")
+                            await asyncio.sleep(60)
+                    else:
+                        await asyncio.sleep(20)
+                else:
+                    consecutive_429_count = 0
+
+                card.detected_name = "Error"
+                db.commit()
+
+            if i < len(cards_to_identify) - 1:
+                await asyncio.sleep(4.5)
+
+    finally:
+        db.close()
