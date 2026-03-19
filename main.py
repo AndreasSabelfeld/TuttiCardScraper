@@ -27,7 +27,7 @@ def main():
 
     try:
         print("\n>>> PHASE 1: SCRAPING & DOWNLOADING <<<")
-        asyncio.run(run_hybrid_scraper(max_listings=10))
+        asyncio.run(run_hybrid_scraper(max_listings=100))
         asyncio.run(run_downloader())
 
         print("\n>>> PHASE 2 & 3: VISION AI & MARKET PRICING <<<")
