@@ -372,8 +372,7 @@ async def analyze_card_free_tier_generator():
                             active_client = genai.Client(api_key=available_keys[current_key_idx])
                             consecutive_429_count = 0
                         else:
-                            print("  No backup keys available! Taking a 60s nap...")
-                            await asyncio.sleep(60)
+                            raise RuntimeError("FATAL: API limits exhausted and no backup keys available. Stopping pipeline.")
                     else:
                         await asyncio.sleep(20)
                 else:
