@@ -149,7 +149,14 @@ async def run_parallel_pricer():
 
             priced_count = 0
             for coro in asyncio.as_completed(tasks):
-                card_id, price_val_chf, pc_url, img_url = await coro
+                card_id, price_val_chf, pc_url, img_url, status = await coro
+
+                if "ERROR" in status or status == "CLOUDFLARE":
+                    print(f"  -> [Card {card_id}] PriceCharting Failed: {status}")
+                elif status == "NOT_FOUND":
+                    print(f"  -> [Card {card_id}] PriceCharting Failed: Could not find card.")
+                else:
+                    print(f"  -> [Card {card_id}] Priced successfully: CHF {price_val_chf}")
 
                 db_card = db.query(Card).filter(Card.id == card_id).first()
                 if db_card:
