@@ -72,4 +72,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # do not run this script for the moment while I'll fix the problem
+    pass
+    # main()

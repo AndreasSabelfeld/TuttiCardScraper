@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="We now raise a runtime error if we are out of available keys">
+    <list default="true" id="cf668293-96e5-4bf1-aa13-ac0afab39727" name="Changes" comment="bugfix with unequal amount of arguments/returns">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pricing/pricecharting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pricing/pricecharting.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -209,7 +208,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774375623070</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="bugfix with unequal amount of arguments/returns">
+      <option name="closed" value="true" />
+      <created>1775049016342</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1775049016342</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -236,6 +243,7 @@
     <MESSAGE value="fixed the free tier" />
     <MESSAGE value="Implemented a concurrent pipeline for detection and pricing" />
     <MESSAGE value="We now raise a runtime error if we are out of available keys" />
-    <option name="LAST_COMMIT_MESSAGE" value="We now raise a runtime error if we are out of available keys" />
+    <MESSAGE value="bugfix with unequal amount of arguments/returns" />
+    <option name="LAST_COMMIT_MESSAGE" value="bugfix with unequal amount of arguments/returns" />
   </component>
 </project>
